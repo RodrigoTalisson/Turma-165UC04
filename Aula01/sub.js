@@ -1,8 +1,6 @@
 import PromptSync from "prompt-sync";
-const prompt= PromptSync();
+const prompt = PromptSync();
+const preco = Number(prompt("Digite um valor"))
 
-
-let numero2 = 5;
-let numero3= 7;
-let dif = numero2-numero3;
-console.log=("Dif:", dif);
+const resultado = preco (valor01-valor02);
+console.log('resultado:${resultado}');
