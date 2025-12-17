@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Mini Clash Royale</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+
+body{
+    background:#0f1220;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+#game{
+    width:360px;
+    height:640px;
+    background:#1f2340;
+    border-radius:16px;
+    overflow:hidden;
+    position:relative;
+}
+
+/* TORRES */
+.tower{
+    width:80px;
+    height:60px;
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    border-radius:10px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+
+#enemyTower{ top:10px; background:#e74c3c; }
+#playerTower{ bottom:130px; background:#3498db; }
+
+.sideTower{
+    width:60px;
+    height:60px;
+    background:#2ecc71;
+    border-radius:50%;
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+}
+
+#leftTower{ left:10px; }
+#rightTower{ right:10px; }
+
+/* ARENA */
+#arena{
+    position:absolute;
+    top:80px;
+    bottom:200px;
+    left:0;
+    right:0;
+}
+
+/* TROPAS */
+.unit{
+    position:absolute;
+}
+
+.player{ background:#3498db; }
+.enemy{ background:#e74c3c; }
+
+.soldado{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+}
+
+.arqueiro{
+    width:26px;
+    height:26px;
+    border-radius:6px;
+    background:#f1c40f;
+}
+
+.gigante{
+    width:36px;
+    height:36px;
+    border-radius:8px;
+    background:#9b59b6;
+}
+
+/* PROJÉTIL */
+.arrow{
+    width:8px;
+    height:8px;
+    background:#fff;
+    border-radius:50%;
+    position:absolute;
+}
+
+/* ELIXIR */
+#elixirBar{
+    position:absolute;
+    bottom:170px;
+    width:100%;
+    height:18px;
+    background:#333;
+}
+
+#elixir{
+    height:100%;
+    width:0%;
+    background:#9b59b6;
+}
+
+/* CARTAS */
+#cards{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:120px;
+    background:#111;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+}
+
+.card{
+    width:90px;
+    height:100px;
+    background:#333;
+    border-radius:12px;
+    color:#fff;
+    text-align:center;
+    padding:6px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.card:hover{
+    transform:scale(1.1);
+    background:#555;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+
+    <div id="enemyTower" class="tower">100</div>
+    <div id="leftTower" class="sideTower">50</div>
+    <div id="rightTower" class="sideTower">50</div>
+
+    <div id="arena"></div>
+
+    <div id="playerTower" class="tower">100</div>
+
+    <div id="elixirBar"><div id="elixir"></div></div>
+
+    <div id="cards">
+        <div class="card" onclick="spawn('soldado')">⚔️<br>Soldado<br>2</div>
+        <div class="card" onclick="spawn('arqueiro')">🏹<br>Arqueiro<br>3</div>
+        <div class="card" onclick="spawn('gigante')">🛡️<br>Gigante<br>5</div>
+    </div>
+
+</div>
+
+<script>
+const arena = document.getElementById("arena");
+const elixirBar = document.getElementById("elixir");
+const enemyTower = document.getElementById("enemyTower");
+const playerTower = document.getElementById("playerTower");
+
+let elixir = 0;
+let enemyLife = 100;
+let playerLife = 100;
+
+const troops = {
+    soldado:{ life:30, damage:6, speed:1.2, cost:2, range:20 },
+    arqueiro:{ life:20, damage:5, speed:1.2, cost:3, range:80 },
+    gigante:{ life:60, damage:12, speed:0.6, cost:5, range:20 }
+};
+
+/* ELIXIR */
+setInterval(()=>{
+    if(elixir < 10){
+        elixir += 0.5;
+        elixirBar.style.width = (elixir*10)+"%";
+    }
+},800);
+
+/* SPAWN */
+function spawn(type){
+    if(elixir < troops[type].cost) return;
+    elixir -= troops[type].cost;
+    elixirBar.style.width = (elixir*10)+"%";
+    createUnit(type,"player");
+}
+
+function createUnit(type,side){
+    const unit = document.createElement("div");
+    unit.className = `unit ${side} ${type}`;
+    unit.dataset.type = type;
+    unit.dataset.life = troops[type].life;
+
+    unit.style.left = Math.random()*300+"px";
+    side==="player" ? unit.style.bottom="0px" : unit.style.top="0px";
+
+    arena.appendChild(unit);
+    moveUnit(unit,side);
+}
+
+/* MOVIMENTO + ATAQUE */
+function moveUnit(unit,side){
+    let pos = 0;
+    let attacking = false;
+
+    const interval = setInterval(()=>{
+        const enemies = [...document.querySelectorAll(`.${side==="player"?"enemy":"player"}`)];
+        const target = enemies.find(e =>
+            Math.abs(unit.getBoundingClientRect().top - e.getBoundingClientRect().top)
+            < troops[unit.dataset.type].range
+        );
+
+        if(target){
+            attacking = true;
+            if(unit.dataset.type === "arqueiro"){
+                shoot(unit,target);
+            }
+            target.dataset.life -= troops[unit.dataset.type].damage;
+            if(target.dataset.life <= 0) target.remove();
+        }else{
+            attacking = false;
+        }
+
+        if(!attacking){
+            pos += troops[unit.dataset.type].speed;
+            side==="player" ? unit.style.bottom=pos+"px" : unit.style.top=pos+"px";
+        }
+
+        if(pos > arena.clientHeight-40){
+            if(side==="player"){
+                enemyLife -= troops[unit.dataset.type].damage;
+                enemyTower.innerText = enemyLife;
+                if(enemyLife<=0){ alert("🏆 Vitória!"); location.reload(); }
+            }else{
+                playerLife -= troops[unit.dataset.type].damage;
+                playerTower.innerText = playerLife;
+                if(playerLife<=0){ alert("💀 Derrota!"); location.reload(); }
+            }
+            unit.remove();
+            clearInterval(interval);
+        }
+    },300);
+}
+
+/* PROJÉTIL */
+function shoot(unit,target){
+    const arrow = document.createElement("div");
+    arrow.className = "arrow";
+    arrow.style.left = unit.offsetLeft+"px";
+    arrow.style.top = unit.offsetTop+"px";
+    arena.appendChild(arrow);
+
+    setTimeout(()=>arrow.remove(),300);
+}
+
+/* INIMIGO AUTOMÁTICO */
+setInterval(()=>{
+    const types=["soldado","arqueiro"];
+    const type=types[Math.floor(Math.random()*types.length)];
+    createUnit(type,"enemy");
+},2500);
+</script>
+
+</body>
+</html>
