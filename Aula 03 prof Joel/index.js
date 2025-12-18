@@ -2,7 +2,7 @@ import Usuario from "./usuario.js";
 
 const user1 = new Usuario(
     "Rodrigo",
-    20,
+    15,
     "Masculino",
     "11999999999",
     "email@email.com",

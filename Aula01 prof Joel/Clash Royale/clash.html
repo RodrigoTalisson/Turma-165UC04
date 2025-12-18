@@ -68,11 +68,12 @@ body{
 /* ARENA */
 #arena{
     position:absolute;
-    top:80px;
-    bottom:200px;
+    top:70px;        /* era 90 */
+    bottom:240px;    /* era 200 */
     left:0;
     right:0;
 }
+
 
 /* TROPAS */
 .unit{
@@ -189,18 +190,20 @@ let enemyLife = 100;
 let playerLife = 100;
 
 const troops = {
-    soldado:{ life:30, damage:6, speed:1.2, cost:2, range:20 },
-    arqueiro:{ life:20, damage:5, speed:1.2, cost:3, range:80 },
-    gigante:{ life:60, damage:12, speed:0.6, cost:5, range:20 }
+    soldado:{ life:40, damage:6, speed:2, cost:2 },
+    arqueiro:{ life:25, damage:9, speed:2.5, cost:3, range:80 },
+    gigante:{ life:80, damage:15, speed:1.2, cost:5 }
 };
+
 
 /* ELIXIR */
 setInterval(()=>{
     if(elixir < 10){
-        elixir += 0.5;
-        elixirBar.style.width = (elixir*10)+"%";
+        elixir += 1; // era 0.5
+        elixirBar.style.width = (elixir * 10) + "%";
     }
-},800);
+}, 600); // era 800
+
 
 /* SPAWN */
 function spawn(type){
